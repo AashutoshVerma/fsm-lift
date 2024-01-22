@@ -1,0 +1,136 @@
+import json
+import time
+
+current_floor = 0
+building_storey = 10
+state = 'idle'
+floor_to_stop = []
+input_from_outside = ''
+
+
+def clear_outside_input():
+    data = {"input": ""}
+    with open("params.json", "w") as file:
+        json.dump(data, file)
+
+
+def next_state(next_floor):
+    global current_floor
+    global state
+    if next_floor < building_storey:
+        if current_floor == next_floor:
+            print(f"Already on floor no. {current_floor} ")
+        else:
+            start_moving(next_floor)
+    else:
+        print(f"Sorry this floor not available!!")
+
+
+def start_moving(next_floor):
+    global current_floor
+    global state
+    global input_from_outside
+    # timer = time.time()
+    if str(next_floor) not in floor_to_stop:
+        floor_to_stop.append(str(next_floor))
+    prev_outside_input = ''
+    # time_to_complete = 2 * (next_floor - current_floor)
+    if current_floor < next_floor:
+        state = 'moving'
+        for i in range(current_floor + 1, next_floor + 1):
+            with open("params.json", "r") as file:
+                data = json.load(file)
+            if data['input'] in floor_to_stop:
+                pass
+            else:
+                input_from_outside = data['input']
+                if prev_outside_input != input_from_outside and input_from_outside.isdigit():
+                    prev_outside_input = input_from_outside
+                    floor_to_stop.append(input_from_outside)
+                    # incoming_time = time.time() - timer
+                    # print(incoming_time, time_to_complete)
+                    # if incoming_time < time_to_complete:
+                    #     print("Acceptable input")
+                    # else:
+                    #     print("non-acceptable input")
+                # else:
+                #     print("Entered value is String : ", input_from_outside)
+            print(floor_to_stop)
+            time.sleep(2)
+            # print(f"Reached floor no. {i}, timer : {time.time() - timer}")
+            print(f"Reached floor no. {i}")
+            if str(i) in floor_to_stop:
+                print("Stopped at floor : ", i)
+                input_at_stop = input("Enter the floor or enter 'c' to close the door : ")
+                if input_at_stop.lower() == 'c':
+                    print("inside c")
+                    floor_to_stop.remove(str(i))
+                    clear_outside_input()
+                    continue
+                else:
+                    floor_to_stop.append(input_at_stop)
+                # print(i)
+                floor_to_stop.remove(str(i))
+            current_floor = next_floor
+        state = 'idle'
+    else:
+        state = 'moving'
+        for i in (reversed(range(next_floor, current_floor + 1))):
+            with open("params.json", "r") as file:
+                data = json.load(file)
+            if data['input'] in floor_to_stop:
+                pass
+            else:
+                input_from_outside = data['input']
+                if prev_outside_input != input_from_outside and input_from_outside.isdigit():
+                    prev_outside_input = input_from_outside
+                    floor_to_stop.append(input_from_outside)
+                    # incoming_time = time.time() - timer
+                    # print(incoming_time, time_to_complete)
+                    # if incoming_time < time_to_complete:
+                    #     print("Acceptable input")
+                    # else:
+                    #     print("non-acceptable input")
+                # else:
+                #     print("Entered value is String : ", input_from_outside)
+            print(floor_to_stop)
+            # print(data['input'])
+            time.sleep(2)
+            # timer = timer + 2
+            # print(f"Reached floor no. {i}, timer : {timer}")
+            print(f"Reached floor no. {i}")
+            if str(i) in floor_to_stop:
+                print("Stopped at floor : ", i)
+                input_at_stop = input("Enter the floor or enter 'c' to close the door")
+                if input_at_stop.lower() == 'c':
+                    print("inside c")
+                    floor_to_stop.remove(str(i))
+                    continue
+                else:
+                    floor_to_stop.append(input_at_stop)
+                # print(i)
+                floor_to_stop.remove(str(i))
+            current_floor = next_floor
+        state = 'idle'
+    if len(floor_to_stop) != 0:
+        next_state(int(max(floor_to_stop)))
+
+
+def main():
+    global current_floor
+    while True:
+        print("Current Floor : ", current_floor)
+        next_floor = input("Enter Next floor : ")
+        if next_floor == "exit":
+            print("Thanks for using Elevator")
+            break
+        elif len(next_floor.strip()) >= 1:
+            try:
+                next_state(int(next_floor))
+            except ValueError as e:
+                print(e)
+                print("Enter Valid Floor Number")
+
+
+if __name__ == "__main__":
+    main()
